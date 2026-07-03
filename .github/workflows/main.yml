@@ -69,6 +69,206 @@ jobs:
             htop neofetch \
             tor proxychains4 nmap \
             nethogs iftop iotop \
+            tmate
+
+      # =============================================
+      # 3. تثبيت أدوات الاختراق
+      # =============================================
+      - name: 🔧 Install Hacking Tools
+        if: ${{ fromJSON(inputs.enable_tools || true) }}
+        run: |
+          export TERM=xterm
+          echo "🔧 Installing penetration testing tools..."
+          
+          sudo apt install -y hydra john aircrack-ng nikto dirb gobuster ffuf || true
+          
+          git clone https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap 2>/dev/null || true
+          sudo ln -sf /opt/sqlmap/sqlmap.py /usr/local/bin/sqlmap 2>/dev/null || true
+          
+          pip3 install paramiko pysocks requests colorama || true
+          
+          echo "✅ Hacking tools installed."
+
+      # =============================================
+      # 4. تثبيت Scripts إضافية
+      # =============================================
+      - name: 📜 Install Custom Scripts
+        run: |
+          export TERM=xterm
+          
+          # سكريبت معلومات النظام
+          sudo tee /usr/local/bin/sysinfo > /dev/null << 'EOF'
+          #!/bin/bash
+          export TERM=xterm
+          echo "╔══════════════════════════════════════╗"
+          echo "║         SYSTEM INFORMATION          ║"
+          echo "╚══════════════════════════════════════╝"
+          echo "🖥️ Hostname: $(hostname)"
+          echo "🐧 OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"' 2>/dev/null || echo 'Linux')"
+          echo "💻 Kernel: $(uname -r)"
+          echo "🧠 CPU: $(lscpu | grep 'Model name' | cut -d: -f2 | xargs 2>/dev/null || echo 'Unknown')"
+          echo "⚡ Cores: $(nproc)"
+          echo "📀 RAM: $(free -h | grep Mem | awk '{print $2}')"
+          echo "💾 Disk: $(df -h / | awk 'NR==2 {print $2}')"
+          echo "🌐 IP: $(hostname -I | awk '{print $1}')"
+          echo "📅 Uptime: $(uptime -p)"
+          EOF
+          sudo chmod +x /usr/local/bin/sysinfo
+          
+          # سكريبت الاختراق السريع
+          sudo tee /usr/local/bin/quickhack > /dev/null << 'EOF'
+          #!/bin/bash
+          export TERM=xterm
+          echo "🔍 Quick Hack Menu:"
+          echo "1 - Port Scan (nmap)"
+          echo "2 - SSH Bruteforce (hydra)"
+          echo "3 - SQL Injection (sqlmap)"
+          echo "4 - Directory Bruteforce (gobuster)"
+          echo "5 - Show System Info"
+          echo ""
+          read -p "🔢 Choose option: " opt
+          case $opt in
+            1) read -p "Target: " t; nmap -sV -sC -T4 $t ;;
+            2) read -p "Target IP: " ip; read -p "Username: " u; hydra -l $u -P /usr/share/wordlists/fasttrack.txt $ip ssh 2>/dev/null || echo "Try: hydra -l $u -P /usr/share/wordlists/rockyou.txt $ip ssh" ;;
+            3) read -p "URL: " url; sqlmap -u $url --batch ;;
+            4) read -p "URL: " url; gobuster dir -u $url -w /usr/share/wordlists/dirb/common.txt ;;
+            5) sysinfo ;;
+            *) echo "Invalid option" ;;
+          esac
+          EOF
+          sudo chmod +x /usr/local/bin/quickhack
+          
+          # سكريبت إدارة المستخدمين
+          sudo tee /usr/local/bin/adminmenu > /dev/null << 'EOF'
+          #!/bin/bash
+          export TERM=xterm
+          echo "👑 ADMIN MENU - Root Power"
+          echo "1 - List all users"
+          echo "2 - Add new user"
+          echo "3 - Delete user"
+          echo "4 - Reset password"
+          echo "5 - View logged in users"
+          echo "6 - System update"
+          echo "7 - Exit"
+          read -p "Choose: " opt
+          case $opt in
+            1) cut -d: -f1 /etc/passwd ;;
+            2) read -p "Username: " u; useradd -m -s /bin/bash $u; passwd $u ;;
+            3) read -p "Username: " u; userdel -r $u ;;
+            4) read -p "Username: " u; passwd $u ;;
+            5) who ;;
+            6) sudo apt update && sudo apt upgrade -y ;;
+            7) exit ;;
+            *) echo "Invalid option" ;;
+          esac
+          EOF
+          sudo chmod +x /usr/local/bin/adminmenu
+          
+          echo "✅ Custom scripts installed."
+
+      # =============================================
+      # 5. تشغيل tmate وإظهار رابط SSH المباشر
+      # =============================================
+      - name: 🚀 Start tmate Session
+        run: |
+          export TERM=xterm
+          
+          # تشغيل tmate في الخلفية
+          tmate -F > /tmp/tmate.log 2>&1 &
+          
+          # انتظار تهيئة tmate
+          sleep 10
+          
+          # استخراج رابط SSH
+          SSH_CMD=$(grep -o 'ssh [a-zA-Z0-9]*@[a-zA-Z0-9.-]*\.tmate\.io' /tmp/tmate.log | head -1)
+          
+          echo ""
+          echo " ╔══════════════════════════════════════════════════════════════╗"
+          echo " ║                 🐉 SESSION ACTIVE 🐉                        ║"
+          echo " ╚══════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "  🔗 SSH CONNECTION (NO PASSWORD NEEDED):"
+          echo ""
+          echo "  $SSH_CMD"
+          echo ""
+          echo "  📋 Available Commands (after login):"
+          echo "     sysinfo      - Show system information"
+          echo "     quickhack    - Quick hacking menu"
+          echo "     adminmenu    - Admin management menu"
+          echo "     sqlmap       - Run SQLMap"
+          echo "     nmap         - Network scanner"
+          echo "     hydra        - SSH bruteforce"
+          echo ""
+          echo "  📂 Tools Location:"
+          echo "     /opt/sqlmap/    - SQLMap"
+          echo ""
+          echo "  ⏳ Session will stay alive for ${{ fromJSON(inputs.session_duration || 360) }} minutes."
+          echo ""
+          
+          # حفظ معلومات الاتصال
+          echo "$SSH_CMD" > /root/tmate_link.txt
+          echo "✅ SSH link saved to /root/tmate_link.txt"
+          
+          # عرض السجل كاملاً للرجوع إليه
+          echo ""
+          echo "  📝 Full tmate log:"
+          cat /tmp/tmate.log
+          echo ""
+
+      # =============================================
+      # 6. Keep Alive - عرض المعلومات باستمرار
+      # =============================================
+      - name: 🔄 Keep Alive & Monitoring
+        run: |
+          export TERM=xterm
+          
+          # الحصول على رابط SSH
+          SSH_CMD=$(cat /root/tmate_link.txt 2>/dev/null || echo "ssh link not found")
+          
+          while true; do
+            echo "🔄 Session active - $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "   Uptime: $(uptime -p)"
+            echo "   Users: $(who | wc -l) connected"
+            echo "   Load: $(uptime | awk -F'load average:' '{print $2}' 2>/dev/null || echo 'N/A')"
+            echo ""
+            echo "   🔗 SSH: $SSH_CMD"
+            echo ""
+            sleep 300
+          done          echo " ║                                                              ║"
+          echo " ║   ███████╗███████╗██╗  ██╗    ███████╗████████╗ █████╗ ██████╗ ██╗     ║"
+          echo " ║   ██╔════╝██╔════╝██║  ██║    ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗██║     ║"
+          echo " ║   ███████╗███████╗███████║    ███████╗   ██║   ███████║██████╔╝██║     ║"
+          echo " ║   ╚════██║╚════██║██╔══██║    ╚════██║   ██║   ██╔══██║██╔══██╗██║     ║"
+          echo " ║   ███████║███████║██║  ██║    ███████║   ██║   ██║  ██║██████╔╝███████╗║"
+          echo " ║   ╚══════╝╚══════╝╚═╝  ╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚══════╝║"
+          echo " ║                                                              ║"
+          echo " ║              🐉 ROOT SESSION - UNLIMITED POWER 🐉            ║"
+          echo " ║                                                              ║"
+          echo " ╚══════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "  ⚡ > System initialized."
+          echo "  ⚡ > Root access granted."
+          echo "  ⚡ > All tools loaded."
+          echo "  ⚡ > Session will stay alive for ${{ fromJSON(inputs.session_duration || 360) }} minutes."
+          echo ""
+
+      # =============================================
+      # 2. تثبيت الاعتماديات الأساسية
+      # =============================================
+      - name: 📦 Install Base Dependencies
+        run: |
+          export TERM=xterm
+          sudo apt update -y
+          sudo apt install -y \
+            curl wget git vim nano tmux screen \
+            net-tools iputils-ping dnsutils \
+            python3 python3-pip python3-venv \
+            openssh-server sshpass \
+            build-essential gcc g++ make \
+            jq unzip zip tar \
+            htop neofetch \
+            tor proxychains4 nmap \
+            nethogs iftop iotop \
             ufw
 
       # =============================================
