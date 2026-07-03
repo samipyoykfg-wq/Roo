@@ -1,0 +1,301 @@
+name: 🐉 SSH Session Stable - Root Edition
+
+on:
+  workflow_dispatch:
+    inputs:
+      session_duration:
+        description: '⏱️ مدة الجلسة (بالدقائق)'
+        required: false
+        default: '360'
+        type: choice
+        options:
+          - '360'
+          - '720'
+          - '1440'
+          - '2880'
+      enable_tools:
+        description: '🔧 تثبيت أدوات الاختراق؟'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  root-session:
+    name: 🔥 Root SSH Server
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(inputs.session_duration || 360) }}
+
+    steps:
+      # =============================================
+      # 1. شعار البداية الرائع
+      # =============================================
+      - name: 🎨 Banner
+        run: |
+          export TERM=xterm
+          echo ""
+          echo " ╔══════════════════════════════════════════════════════════════╗"
+          echo " ║                                                              ║"
+          echo " ║   ███████╗███████╗██╗  ██╗    ███████╗████████╗ █████╗ ██████╗ ██╗     ║"
+          echo " ║   ██╔════╝██╔════╝██║  ██║    ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗██║     ║"
+          echo " ║   ███████╗███████╗███████║    ███████╗   ██║   ███████║██████╔╝██║     ║"
+          echo " ║   ╚════██║╚════██║██╔══██║    ╚════██║   ██║   ██╔══██║██╔══██╗██║     ║"
+          echo " ║   ███████║███████║██║  ██║    ███████║   ██║   ██║  ██║██████╔╝███████╗║"
+          echo " ║   ╚══════╝╚══════╝╚═╝  ╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚══════╝║"
+          echo " ║                                                              ║"
+          echo " ║              🐉 ROOT SESSION - UNLIMITED POWER 🐉            ║"
+          echo " ║                                                              ║"
+          echo " ╚══════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "  ⚡ > System initialized."
+          echo "  ⚡ > Root access granted."
+          echo "  ⚡ > All tools loaded."
+          echo "  ⚡ > Session will stay alive for ${{ fromJSON(inputs.session_duration || 360) }} minutes."
+          echo ""
+
+      # =============================================
+      # 2. تثبيت الاعتماديات الأساسية
+      # =============================================
+      - name: 📦 Install Base Dependencies
+        run: |
+          export TERM=xterm
+          sudo apt update -y
+          sudo apt install -y \
+            curl wget git vim nano tmux screen \
+            net-tools iputils-ping dnsutils \
+            python3 python3-pip python3-venv \
+            openssh-server sshpass \
+            build-essential gcc g++ make \
+            jq unzip zip tar \
+            htop neofetch \
+            tor proxychains4 nmap \
+            nethogs iftop iotop \
+            ufw
+
+      # =============================================
+      # 3. تثبيت أدوات الاختراق
+      # =============================================
+      - name: 🔧 Install Hacking Tools
+        if: ${{ fromJSON(inputs.enable_tools || true) }}
+        run: |
+          export TERM=xterm
+          echo "🔧 Installing penetration testing tools..."
+          
+          sudo apt install -y hydra john aircrack-ng nikto dirb gobuster ffuf || true
+          
+          git clone https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap 2>/dev/null || true
+          sudo ln -sf /opt/sqlmap/sqlmap.py /usr/local/bin/sqlmap 2>/dev/null || true
+          
+          pip3 install paramiko pysocks requests colorama || true
+          
+          echo "✅ Hacking tools installed."
+
+      # =============================================
+      # 4. إعداد SSH Server
+      # =============================================
+      - name: 🛡️ Configure SSH Server
+        run: |
+          export TERM=xterm
+          
+          # تمكين الجذر وكلمة المرور
+          sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config || true
+          sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config || true
+          sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config || true
+          sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config || true
+          
+          # تعيين المنفذ
+          echo "Port 2222" | sudo tee -a /etc/ssh/sshd_config
+          echo "PermitEmptyPasswords no" | sudo tee -a /etc/ssh/sshd_config
+          
+          # إعادة تشغيل SSH
+          sudo systemctl restart sshd || sudo service ssh restart || true
+          
+          echo "✅ SSH Server configured on port 2222"
+
+      # =============================================
+      # 5. إنشاء المستخدمين
+      # =============================================
+      - name: 👤 Create Users
+        run: |
+          export TERM=xterm
+          
+          # تعيين كلمة مرور الجذر
+          echo "root:RootHack2026!" | sudo chpasswd
+          
+          # حذف المستخدمين الموجودين
+          sudo userdel -r admin 2>/dev/null || true
+          sudo userdel -r hacker 2>/dev/null || true
+          
+          # إنشاء مستخدم admin
+          sudo useradd -m -s /bin/bash admin 2>/dev/null
+          echo "admin:AdminHack2026!" | sudo chpasswd
+          sudo usermod -aG sudo admin || true
+          sudo usermod -aG root admin || true
+          
+          # إنشاء مستخدم hacker
+          sudo useradd -m -s /bin/bash hacker 2>/dev/null
+          echo "hacker:HackThePlanet2026!" | sudo chpasswd
+          sudo usermod -aG sudo hacker || true
+          
+          echo "✅ Users created: root, admin, hacker"
+
+      # =============================================
+      # 6. تثبيت Scripts إضافية
+      # =============================================
+      - name: 📜 Install Custom Scripts
+        run: |
+          export TERM=xterm
+          
+          # سكريبت معلومات النظام
+          sudo tee /usr/local/bin/sysinfo > /dev/null << 'EOF'
+          #!/bin/bash
+          export TERM=xterm
+          echo "╔══════════════════════════════════════╗"
+          echo "║         SYSTEM INFORMATION          ║"
+          echo "╚══════════════════════════════════════╝"
+          echo "🖥️ Hostname: $(hostname)"
+          echo "🐧 OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"' 2>/dev/null || echo 'Linux')"
+          echo "💻 Kernel: $(uname -r)"
+          echo "🧠 CPU: $(lscpu | grep 'Model name' | cut -d: -f2 | xargs 2>/dev/null || echo 'Unknown')"
+          echo "⚡ Cores: $(nproc)"
+          echo "📀 RAM: $(free -h | grep Mem | awk '{print $2}')"
+          echo "💾 Disk: $(df -h / | awk 'NR==2 {print $2}')"
+          echo "🌐 IP: $(hostname -I | awk '{print $1}')"
+          echo "📅 Uptime: $(uptime -p)"
+          EOF
+          sudo chmod +x /usr/local/bin/sysinfo
+          
+          # سكريبت الاختراق السريع
+          sudo tee /usr/local/bin/quickhack > /dev/null << 'EOF'
+          #!/bin/bash
+          export TERM=xterm
+          echo "🔍 Quick Hack Menu:"
+          echo "1 - Port Scan (nmap)"
+          echo "2 - SSH Bruteforce (hydra)"
+          echo "3 - SQL Injection (sqlmap)"
+          echo "4 - Directory Bruteforce (gobuster)"
+          echo "5 - Show System Info"
+          echo ""
+          read -p "🔢 Choose option: " opt
+          case $opt in
+            1) read -p "Target: " t; nmap -sV -sC -T4 $t ;;
+            2) read -p "Target IP: " ip; read -p "Username: " u; hydra -l $u -P /usr/share/wordlists/fasttrack.txt $ip ssh 2>/dev/null || echo "Try: hydra -l $u -P /usr/share/wordlists/rockyou.txt $ip ssh" ;;
+            3) read -p "URL: " url; sqlmap -u $url --batch ;;
+            4) read -p "URL: " url; gobuster dir -u $url -w /usr/share/wordlists/dirb/common.txt ;;
+            5) sysinfo ;;
+            *) echo "Invalid option" ;;
+          esac
+          EOF
+          sudo chmod +x /usr/local/bin/quickhack
+          
+          # سكريبت إدارة المستخدمين
+          sudo tee /usr/local/bin/adminmenu > /dev/null << 'EOF'
+          #!/bin/bash
+          export TERM=xterm
+          echo "👑 ADMIN MENU - Root Power"
+          echo "1 - List all users"
+          echo "2 - Add new user"
+          echo "3 - Delete user"
+          echo "4 - Reset password"
+          echo "5 - View logged in users"
+          echo "6 - System update"
+          echo "7 - Exit"
+          read -p "Choose: " opt
+          case $opt in
+            1) cut -d: -f1 /etc/passwd ;;
+            2) read -p "Username: " u; useradd -m -s /bin/bash $u; passwd $u ;;
+            3) read -p "Username: " u; userdel -r $u ;;
+            4) read -p "Username: " u; passwd $u ;;
+            5) who ;;
+            6) sudo apt update && sudo apt upgrade -y ;;
+            7) exit ;;
+            *) echo "Invalid option" ;;
+          esac
+          EOF
+          sudo chmod +x /usr/local/bin/adminmenu
+          
+          echo "✅ Custom scripts installed."
+
+      # =============================================
+      # 7. الحصول على IP وإعداد منفذ SSH
+      # =============================================
+      - name: 🌐 Get Connection Info
+        run: |
+          export TERM=xterm
+          
+          # الحصول على IP
+          IP=$(hostname -I | awk '{print $1}')
+          
+          echo ""
+          echo " ╔══════════════════════════════════════════════════════════════╗"
+          echo " ║                 🐉 SESSION ACTIVE 🐉                        ║"
+          echo " ╚══════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "  🔗 SSH CONNECTION INFO:"
+          echo "  ssh root@$IP -p 2222"
+          echo "  ssh admin@$IP -p 2222"
+          echo "  ssh hacker@$IP -p 2222"
+          echo ""
+          echo "  🔑 PASSWORDS:"
+          echo "     root: RootHack2026!"
+          echo "     admin: AdminHack2026!"
+          echo "     hacker: HackThePlanet2026!"
+          echo ""
+          echo "  📋 Available Commands:"
+          echo "     sysinfo      - Show system information"
+          echo "     quickhack    - Quick hacking menu"
+          echo "     adminmenu    - Admin management menu"
+          echo ""
+          echo "  ⏳ Session will stay alive for ${{ fromJSON(inputs.session_duration || 360) }} minutes."
+          echo ""
+          echo "  🌐 Public IP (may differ):"
+          curl -s ifconfig.me || echo "  (run: curl ifconfig.me)"
+          echo ""
+          
+          # حفظ المعلومات
+          cat > /root/INFO.txt << EOF
+          ========================================
+          🐉 SSH SESSION STABLE - ROOT EDITION
+          ========================================
+          Date: $(date)
+          Hostname: $(hostname)
+          IP: $IP
+          SSH Port: 2222
+          
+          Users:
+          - root / RootHack2026!
+          - admin / AdminHack2026!
+          - hacker / HackThePlanet2026!
+          
+          Commands:
+          - sysinfo     : Show system information
+          - quickhack   : Quick hacking menu
+          - adminmenu   : Admin management
+          
+          Tools:
+          - /opt/sqlmap/
+          
+          Session Duration: ${{ fromJSON(inputs.session_duration || 360) }} minutes
+          ========================================
+          EOF
+          
+          echo "📄 Info saved to /root/INFO.txt"
+
+      # =============================================
+      # 8. Keep Alive - عرض المعلومات باستمرار
+      # =============================================
+      - name: 🔄 Keep Alive & Monitoring
+        run: |
+          export TERM=xterm
+          
+          # عرض معلومات الاتصال باستمرار
+          while true; do
+            echo "🔄 Session active - $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "   Uptime: $(uptime -p)"
+            echo "   Users: $(who | wc -l) connected"
+            echo "   Load: $(uptime | awk -F'load average:' '{print $2}' 2>/dev/null || echo 'N/A')"
+            echo "   SSH Connections: $(sudo netstat -tn | grep :2222 | wc -l)"
+            echo ""
+            echo "   🔗 SSH: ssh root@$(hostname -I | awk '{print $1}') -p 2222"
+            echo ""
+            sleep 300
+          done
