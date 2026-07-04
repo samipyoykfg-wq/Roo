@@ -1,4 +1,4 @@
-name: 🐉 SSH Session Stable - Root Edition
+name: 🔥 SSH Session Stable - Professional
 
 on:
   workflow_dispatch:
@@ -13,28 +13,146 @@ on:
           - '720'
           - '1440'
           - '2880'
-      enable_tools:
-        description: '🔧 تثبيت أدوات الاختراق؟'
-        required: false
-        default: true
-        type: boolean
 
 jobs:
-  root-session:
-    name: 🔥 Root SSH Server
+  ssh:
+    name: 🔥 Professional SSH Session
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(inputs.session_duration || 360) }}
 
     steps:
       # =============================================
-      # 1. شعار البداية
+      # 1. شعار احترافي
       # =============================================
-      - name: 🎨 Banner
+      - name: 🎨 Professional Banner
         run: |
           export TERM=xterm
           echo ""
-          echo " ╔══════════════════════════════════════════════════════════════╗"
-          echo " ║                                                              ║"
+          echo " ╔═══════════════════════════════════════════════════════════════════════════╗"
+          echo " ║                                                                           ║"
+          echo " ║    ███████╗███████╗██╗  ██╗    ███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗ ║"
+          echo " ║    ██╔════╝██╔════╝██║  ██║    ██╔════╝██╔════╝██╔════╝██║██╔════╝ ████╗  ██║ ║"
+          echo " ║    ███████╗███████╗███████║    ███████╗███████╗███████╗██║██║  ███╗██╔██╗ ██║ ║"
+          echo " ║    ╚════██║╚════██║██╔══██║    ╚════██║╚════██║╚════██║██║██║   ██║██║╚██╗██║ ║"
+          echo " ║    ███████║███████║██║  ██║    ███████║███████║███████║██║╚██████╔╝██║ ╚████║ ║"
+          echo " ║    ╚══════╝╚══════╝╚═╝  ╚═╝    ╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝ ║"
+          echo " ║                                                                           ║"
+          echo " ║                   🔥 PROFESSIONAL SSH SESSION 🔥                          ║"
+          echo " ║                                                                           ║"
+          echo " ║                      ⚡ ROOT ACCESS - UNLIMITED ⚡                         ║"
+          echo " ║                                                                           ║"
+          echo " ╚═══════════════════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "  ╔═══════════════════════════════════════════════════════════════════════════╗"
+          echo "  ║  🚀 System Status: ONLINE                                                 ║"
+          echo "  ║  👑 Root Access: GRANTED                                                  ║"
+          echo "  ║  ⏱️  Session Duration: ${{ fromJSON(inputs.session_duration || 360) }} minutes  ║"
+          echo "  ║  🌐 Host: $(hostname)                                                     ║"
+          echo "  ║  📅 Date: $(date '+%Y-%m-%d %H:%M:%S')                                    ║"
+          echo "  ╚═══════════════════════════════════════════════════════════════════════════╝"
+          echo ""
+
+      # =============================================
+      # 2. تثبيت tmate والأدوات الأساسية
+      # =============================================
+      - name: 📦 Install Dependencies
+        run: |
+          export TERM=xterm
+          sudo apt update -y
+          sudo apt install -y tmate htop neofetch
+          echo "✅ Dependencies installed"
+
+      # =============================================
+      # 3. تشغيل tmate - دخول مباشر بدون كلمة مرور
+      # =============================================
+      - name: 🚀 Start tmate Session
+        run: |
+          export TERM=xterm
+          
+          # تشغيل tmate في الخلفية
+          tmate -F > /tmp/tmate.log 2>&1 &
+          
+          # انتظار تهيئة tmate
+          echo "⏳ Waiting for tmate to initialize..."
+          sleep 15
+          
+          # استخراج رابط SSH
+          SSH_CMD=$(grep -o 'ssh [a-zA-Z0-9]*@[a-zA-Z0-9.-]*\.tmate\.io' /tmp/tmate.log | head -1)
+          
+          # حفظ رابط SSH
+          echo "$SSH_CMD" > /root/tmate_link.txt
+          
+          echo ""
+          echo " ╔═══════════════════════════════════════════════════════════════════════════╗"
+          echo " ║                         🔥 SESSION ACTIVE 🔥                             ║"
+          echo " ╚═══════════════════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "  ╔═══════════════════════════════════════════════════════════════════════════╗"
+          echo "  ║  🔗 SSH CONNECTION (NO PASSWORD NEEDED):                                  ║"
+          echo "  ║                                                                           ║"
+          echo "  ║     $SSH_CMD                                                              ║"
+          echo "  ║                                                                           ║"
+          echo "  ║  📋 Available Commands:                                                   ║"
+          echo "  ║     whoami      - Show current user                                       ║"
+          echo "  ║     hostname    - Show hostname                                           ║"
+          echo "  ║     uptime      - Show system uptime                                      ║"
+          echo "  ║     free -h     - Show memory usage                                       ║"
+          echo "  ║     df -h       - Show disk usage                                         ║"
+          echo "  ║     htop        - System monitor                                          ║"
+          echo "  ║     neofetch    - Show system info                                        ║"
+          echo "  ║                                                                           ║"
+          echo "  ║  ⏱️  Session Duration: ${{ fromJSON(inputs.session_duration || 360) }} minutes  ║"
+          echo "  ╚═══════════════════════════════════════════════════════════════════════════╝"
+          echo ""
+          
+          # حفظ المعلومات
+          cat > /root/SESSION_INFO.txt << EOF
+          ========================================
+          🔥 PROFESSIONAL SSH SESSION
+          ========================================
+          Date: $(date)
+          Hostname: $(hostname)
+          IP: $(hostname -I | awk '{print $1}')
+          
+          SSH Link (NO PASSWORD):
+          $SSH_CMD
+          
+          Session Duration: ${{ fromJSON(inputs.session_duration || 360) }} minutes
+          ========================================
+          EOF
+          
+          echo "📄 Session info saved to /root/SESSION_INFO.txt"
+          echo ""
+          echo " 📝 Full tmate log:"
+          cat /tmp/tmate.log
+          echo ""
+
+      # =============================================
+      # 4. Keep Alive احترافي
+      # =============================================
+      - name: 🔄 Professional Keep Alive
+        run: |
+          export TERM=xterm
+          
+          SSH_CMD=$(cat /root/tmate_link.txt 2>/dev/null || echo "ssh link not found")
+          
+          echo " ╔═══════════════════════════════════════════════════════════════════════════╗"
+          echo " ║                      🔄 MONITORING SESSION 🔄                            ║"
+          echo " ╚═══════════════════════════════════════════════════════════════════════════╝"
+          echo ""
+          
+          while true; do
+            echo " ┌───────────────────────────────────────────────────────────────────────────┐"
+            echo " │  🕐 $(date '+%Y-%m-%d %H:%M:%S')                                           │"
+            echo " │  📊 Uptime: $(uptime -p)                                                   │"
+            echo " │  👥 Users: $(who | wc -l) connected                                        │"
+            echo " │  ⚡ Load: $(uptime | awk -F'load average:' '{print $2}' 2>/dev/null || echo 'N/A') │"
+            echo " │  🖥️  Host: $(hostname)                                                    │"
+            echo " │  🔗 SSH: $SSH_CMD                                                         │"
+            echo " └───────────────────────────────────────────────────────────────────────────┘"
+            echo ""
+            sleep 300
+          done          echo " ║                                                              ║"
           echo " ║   ███████╗███████╗██╗  ██╗    ███████╗████████╗ █████╗ ██████╗ ██╗     ║"
           echo " ║   ██╔════╝██╔════╝██║  ██║    ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗██║     ║"
           echo " ║   ███████╗███████╗███████║    ███████╗   ██║   ███████║██████╔╝██║     ║"
