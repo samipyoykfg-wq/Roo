@@ -1,40 +1,68 @@
-name: 🔥 SSH Session Stable - Professional
+name: SSH Session Advanced
 
 on:
   workflow_dispatch:
-    inputs:
-      session_duration:
-        description: '⏱️ مدة الجلسة (بالدقائق)'
-        required: false
-        default: '360'
-        type: choice
-        options:
-          - '360'
-          - '720'
-          - '1440'
-          - '2880'
+  schedule:
+    - cron: '0 */4 * * *'
 
 jobs:
   ssh:
-    name: 🔥 Professional SSH Session
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ fromJSON(inputs.session_duration || 360) }}
+    timeout-minutes: 480
 
     steps:
-      # =============================================
-      # 1. شعار احترافي
-      # =============================================
-      - name: 🎨 Professional Banner
+      - name: Install dependencies
         run: |
-          export TERM=xterm
-          echo ""
-          echo " ╔═══════════════════════════════════════════════════════════════════════════╗"
-          echo " ║                                                                           ║"
-          echo " ║    ███████╗███████╗██╗  ██╗    ███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗ ║"
-          echo " ║    ██╔════╝██╔════╝██║  ██║    ██╔════╝██╔════╝██╔════╝██║██╔════╝ ████╗  ██║ ║"
-          echo " ║    ███████╗███████╗███████║    ███████╗███████╗███████╗██║██║  ███╗██╔██╗ ██║ ║"
-          echo " ║    ╚════██║╚════██║██╔══██║    ╚════██║╚════██║╚════██║██║██║   ██║██║╚██╗██║ ║"
-          echo " ║    ███████║███████║██║  ██║    ███████║███████║███████║██║╚██████╔╝██║ ╚████║ ║"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq curl wget git net-tools
+
+      - name: Setup environment
+        run: |
+          echo "🔧 Setting up SSH environment..."
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+      - name: Start tmate
+        id: tmate
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+          sudo: true
+          install-dependencies: true
+          detached: true
+
+      - name: Get tmate connection info
+        run: |
+          echo "⏳ Waiting for tmate to initialize..."
+          sleep 5
+          echo "========================================"
+          echo "📡 SSH CONNECTION INFO:"
+          echo "========================================"
+          echo "🔑 Check workflow logs for SSH details"
+          echo "========================================"
+
+      - name: Keep alive with heartbeat
+        run: |
+          echo "💓 Starting heartbeat..."
+          COUNTER=0
+          while true; do
+            COUNTER=$((COUNTER+1))
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] Session active for $COUNTER hours"
+            echo "========================================"
+            echo "📊 System Info:"
+            echo "  - CPU: $(nproc) cores"
+            echo "  - RAM: $(free -h | grep Mem | awk '{print $2}')"
+            echo "  - Disk: $(df -h / | awk 'NR==2 {print $2}')"
+            echo "========================================"
+            sleep 3600
+          done
+
+      - name: Cleanup on exit
+        if: always()
+        run: |
+          echo "🧹 Cleaning up..."
+          sudo pkill -f tmate || true
+          echo "✅ Session terminated"          echo " ║    ███████║███████║██║  ██║    ███████║███████║███████║██║╚██████╔╝██║ ╚████║ ║"
           echo " ║    ╚══════╝╚══════╝╚═╝  ╚═╝    ╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝ ║"
           echo " ║                                                                           ║"
           echo " ║                   🔥 PROFESSIONAL SSH SESSION 🔥                          ║"
