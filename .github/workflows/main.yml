@@ -1,39 +1,39 @@
-name: SSH Session Advanced
+name: SSH Session (Stable)
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */4 * * *'
 
 jobs:
   ssh:
     runs-on: ubuntu-latest
-    timeout-minutes: 480
+    timeout-minutes: 360
 
     steps:
-      - name: Install dependencies
+      - name: Update system
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq curl wget git net-tools
+          sudo apt update -y
 
-      - name: Setup environment
+      - name: Install tmate
         run: |
-          echo "🔧 Setting up SSH environment..."
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
+          sudo apt install -y tmate
 
-      - name: Start tmate
-        id: tmate
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-          sudo: true
-          install-dependencies: true
-          detached: true
-
-      - name: Get tmate connection info
+      - name: Start SSH session
         run: |
-          echo "⏳ Waiting for tmate to initialize..."
+          echo "=============================="
+          echo "🚀 STARTING SSH SESSION"
+          echo "=============================="
+
+          # Start session
+          tmate -S /tmp/tmate.sock new-session -d
+
+          # Wait until ready
+          tmate -S /tmp/tmate.sock wait tmate-ready
+
+          echo ""
+          echo "🔐 SSH:"
+          tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+
+          echo ""
           sleep 5
           echo "========================================"
           echo "📡 SSH CONNECTION INFO:"
